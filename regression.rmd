@@ -1,0 +1,54 @@
+---
+title: "Titanic Regression"
+author: "Andrew Wang"
+date: "23/09/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(MuMIn)
+library(statmod)
+
+# Importing data
+train.data = read.csv("train.csv")
+```
+
+```{r}
+train.fit = glm(Survived ~ as.factor(Pclass) + as.factor(Sex) + SibSp + Parch + Fare, family = "binomial", data = train.data)
+
+options(na.action = "na.fail")
+all.fits = dredge(train.fit)
+head(all.fits)
+
+first.model = get.models(all.fits, 1)[[1]]
+summary(first.model)
+
+second.model = get.models(all.fits, 2)[[1]]
+summary(second.model)
+```
+
+```{r}
+plot(first.model, which = 1)
+plot(predict(first.model), qresiduals(first.model))
+```
+
+```{r}
+plot(predict(first.model), residuals(first.model, type = "pearson"))
+plot(predict(first.model), residuals(first.model, type = "deviance"))
+```
+```{r}
+summary(first.model)
+1 - pchisq(first.model$deviance, first.model$df.residual)
+```
+
+```{r}
+confint(first.model)
+```
+Our final model is:
+$$log(odds_i) = \beta_0 + \beta_1 Class2_i + \beta_2 Class3_i + \beta_3 Male_i + \beta_4 Fare + \beta_5SibSp$$
+Base line is Class 1, and female.
+SibSp is the number of siblings or spouses the passenger has that is also on the ship.
